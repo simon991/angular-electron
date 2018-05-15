@@ -29,6 +29,36 @@ export class SocketService {
     });
   }
 
+  public onTextMessage(): Observable<string> {
+    return new Observable<string>(observer => {
+      this.socket.on('textMessage', (data: string) => observer.next(data));
+    });
+  }
+
+  public onSetTime(): Observable<number> {
+    return new Observable<number>(observer => {
+      this.socket.on('settime', (data: number) => observer.next(data));
+    });
+  }
+
+  public onCountdownStart(): Observable<boolean> {
+    return new Observable<boolean>(observer => {
+      this.socket.on('startCountdown', (data: boolean) => observer.next(data));
+    });
+  }
+
+  public onCountdownPause(): Observable<boolean> {
+    return new Observable<boolean>(observer => {
+      this.socket.on('pauseCountdown', (data: boolean) => observer.next(data));
+    });
+  }
+
+  public onCountdownReset(): Observable<boolean> {
+    return new Observable<boolean>(observer => {
+      this.socket.on('resetCountdown', (data: boolean) => observer.next(data));
+    });
+  }
+
   public onEvent(event: Event): Observable<any> {
     return new Observable<Event>(observer => {
       this.socket.on(event, () => observer.next());

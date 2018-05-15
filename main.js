@@ -5,8 +5,34 @@ const Server = require('socket.io');
 const io = new Server(8080);
 let win;
 
+io.on('connect', onConnect);
+var socketConnections = 0;
+function onConnect(socket){
+  socketConnections++;
+  if (socketConnections == 1) {console.log("Control connected");createWindow(); ipWindow.close()} else {console.log("Remote connected");}
+  socket.on('settime', onSetTime);
+  socket.on('resetCountdown', onResetCountdown);
+  socket.on('pauseCountdown', onPauseCountdown);
+  socket.on('startCountdown', onStartCountdown);
+  socket.on('textMessage', onTextMessage);
 
-function getIp(window) {
+}
+
+function onResetCountdown(data){
+  io.emit('resetCountdown', data);
+}function onPauseCountdown(data){
+  io.emit('pauseCountdown', data);
+}function onStartCountdown(data){
+  io.emit('startCountdown', data);
+}function onSetTime(timerTime){
+  io.emit('settime', timerTime);
+}function onTextMessage(textMessage){
+  io.emit('textMessage', textMessage);
+}
+
+
+var ipWindow;
+function getIp() {
   var interfaces = os.networkInterfaces();
   var addresses = [];
   for (var k in interfaces) {
@@ -20,15 +46,15 @@ function getIp(window) {
   console.log(addresses);
 
   /* render a window to show the ip address*/
-  window = new BrowserWindow({
+  ipWindow = new BrowserWindow({
     /*  webPreferences: {
      webSecurity: false
      },*/
-    width: 600,
-    height: 600,
     backgroundColor: '#ffffff',
     icon: `file://${__dirname}/dist/assets/logo.png`
   });
+  ipWindow.setFullScreen(true);
+  ipWindow.setMenu(null);
 
   // create BrowserWindow with dynamic HTML content
   var html = [
@@ -36,15 +62,15 @@ function getIp(window) {
     '<h1>' + addresses + '</h1>',
     "</body>",
   ].join("");
-  window.loadURL("data:text/html;charset=utf-8," + encodeURI(html));
+  ipWindow.loadURL("data:text/html;charset=utf-8," + encodeURI(html));
 
 
   //// uncomment below to open the DevTools.
-  window.webContents.openDevTools();
+  // ipWindow.webContents.openDevTools();
 
   // Event when the window is closed.
-  window.on('closed', function () {
-    window = null;
+  ipWindow.on('closed', function () {
+    ipWindow = null;
   });
 
 }
@@ -52,38 +78,31 @@ function getIp(window) {
 
 function createWindow () {
 
-  getIp();
-
   // Create the browser window.
   win = new BrowserWindow({
   /*  webPreferences: {
       webSecurity: false
     },*/
-    width: 600,
-    height: 600,
     backgroundColor: '#ffffff',
     icon: `file://${__dirname}/dist/assets/logo.png`
-  })
+  });
+  win.setFullScreen(true);
 
 
   win.loadURL(`file://${__dirname}/dist/index.html`)
-
+  win.setMenu(null);
 
   //// uncomment below to open the DevTools.
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 
   // Event when the window is closed.
   win.on('closed', function () {
     win = null;
   })
-
-
-
-
 }
 
 // Create window on electron intialization
-app.on('ready', createWindow)
+app.on('ready', getIp)
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
